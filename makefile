@@ -14,9 +14,14 @@ INC_DIR=./include
 BIN_DIR=./bin
 SRC_DIR=./src
 
-all:
+all: t2fs.o filesystem.o
+	ar rcs $(LIB_DIR)/libcthread.a $(BIN_DIR)/t2fs.o $(BIN_DIR)/filesystem.o $(LIB_DIR)/apidisk.o
+
+t2fs.o:
+	$(CC) -c -o $(BIN_DIR)/t2fs.o $(SRC_DIR)/t2fs.c -Wall
+
+filesystem.o:
+	$(CC) -c -o $(BIN_DIR)/filesystem.o $(SRC_DIR)/filesystem.c -Wall
 
 clean:
-	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/*.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
-
-
+	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/*.o
