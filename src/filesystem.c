@@ -27,24 +27,72 @@
 // };
 
 struct t2fs_superbloco super;
-struct t2fs_record record;
+
 
 void initialize_file_system() {
 	unsigned char buffer[SECTOR_SIZE];
-	unsigned char cluster[SECTOR_SIZE*4];
-	int i, ret;
-
-	for(i = 0; i < 200; i++) {
-		ret = read_sector (i, buffer);
-		if(ret != 0)
-			printf("Erro %d\n", i);
-	}
 
 	read_sector (0, buffer);
 	memcpy(&super, buffer, sizeof(super));
 
+	// =========== Remover para a entrega ==============
+	print_super_block();
+	print_file_system();
+}
+
+void read_cluster(int cluster, unsigned char *buffer) {
+	int initial_sector = super.DataSectorStart + cluster * super.SectorsPerCluster;
+	int i;
+
+	for(i = 0; i < super.SectorsPerCluster; i++) {
+		read_sector (initial_sector+i, &buffer[i*SECTOR_SIZE]);
+	}
+}
+
+
+
+
+// ================ Remover as funções abaixo para a entrega ===================
+void print_file_system() {
+	printf("\n========== FILE SYSTEM ==========\n");
+	print_folder(super.RootDirCluster, 0);
+}
+
+void print_folder(int cluster, int level) {
+	int cluster_size = SECTOR_SIZE * super.SectorsPerCluster;
+	unsigned char buffer[cluster_size];
+	struct t2fs_record record;
+	int i, j;
+
+	read_cluster(cluster, buffer);
+
+	for(i = 0; i < cluster_size / RECORD_SIZE; i++) {
+
+		memcpy(&record, &buffer[i*RECORD_SIZE], sizeof(record));
+
+		if(!record.TypeVal) break;
+
+		for(j = 0; j < level; j++) {
+			printf("\t");
+		}
+
+		printf("%s  %u bytes (%u clusters)\n", record.name, record.bytesFileSize, record.clustersFileSize);
+
+		if(record.TypeVal == 0x02 && i > 1)
+			print_folder(record.firstCluster, level + 1);
+
+		// printf("\n\nType: %02X\n", record.TypeVal);
+		// printf("Name: %s\n", record.name);
+		// printf("File size: %u bytes\n", record.bytesFileSize);
+		// printf("File size: %u clusters\n", record.clustersFileSize);
+		// printf("First cluster: %u\n", record.firstCluster);
+	}
+}
+
+void print_super_block() {
+	printf("\n========== SUPER BLOCK ==========\n");
 	printf("Id: %.4s\n", super.id);
-	printf("Version: %02X\n", super.version);
+	printf("Version: %hu\n", super.version);
 	printf("Super block size: %hu sectors\n", super.superblockSize);
 	printf("Disk size: %u bytes\n", super.DiskSize);
 	printf("Disk size: %u sectors\n", super.NofSectors);
@@ -52,46 +100,4 @@ void initialize_file_system() {
 	printf("FAT start sector: %u\n", super.pFATSectorStart);
 	printf("Root cluster: %u\n", super.RootDirCluster);
 	printf("First data sector: %u\n\n", super.DataSectorStart);
-
-	read_cluster(2, cluster);
-
-	for(i = 0; i < 16; i++) {
-
-		memcpy(&record, &cluster[i*64], sizeof(record));
-
-		record.bytesFileSize = little_to_big(record.bytesFileSize);
-		record.clustersFileSize = little_to_big(record.clustersFileSize);
-		record.firstCluster = little_to_big(record.firstCluster);
-
-		printf("\n\nType: %02X\n", record.TypeVal);
-		printf("Name: %s\n", record.name);
-		printf("File size: %hu bytes\n", record.bytesFileSize);
-		printf("File size: %hu clusters\n", record.clustersFileSize);
-		printf("First cluster: %hu\n", record.firstCluster);
-	}
-
-}
-
-void read_cluster(int cluster, unsigned char *buffer) {
-	int initial_sector = super.DataSectorStart + cluster * 4;
-	int i, ret;
-
-	printf("%d\n", initial_sector);
-
-	for(i = 0; i < 4; i++) {
-		ret = read_sector (initial_sector+i, &buffer[i*SECTOR_SIZE]);
-		printf("%d\n", ret);
-	}
-}
-
-// Converts 32 bits little endian to big endian
-DWORD little_to_big(DWORD little) {
-	DWORD big;
-
-	big = ((little>>24)&0xff) | // move byte 3 to byte 0
-          ((little<<8)&0xff0000) | // move byte 1 to byte 2
-          ((little>>8)&0xff00) | // move byte 2 to byte 1
-          ((little<<24)&0xff000000); // byte 0 to byte 3
-
-    return big;
 }

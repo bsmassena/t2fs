@@ -4,6 +4,7 @@
 #define __LIBT2FS___
 
 #define	SECTOR_SIZE	256
+#define RECORD_SIZE 64
 
 #define TYPEVAL_INVALIDO    0x00
 #define TYPEVAL_REGULAR     0x01
