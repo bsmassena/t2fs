@@ -26,22 +26,30 @@
 // 	DWORD	firstCluster;	/* Número do primeiro cluster de dados correspondente a essa entrada de diretório */
 // };
 
-struct t2fs_superbloco super;
+Super super;
+Record root_dir;
+Record current_dir;
+DWORD *fat;
+
+int initialized = 0;
 
 
 void initialize_file_system() {
-	unsigned char buffer[SECTOR_SIZE];
+	read_super_block();
+	read_fat();
+	read_root_dir();
 
-	read_sector (0, buffer);
-	memcpy(&super, buffer, sizeof(super));
+	initialized = 1;
 
 	// =========== Remover para a entrega ==============
 	print_super_block();
 	print_file_system();
+	print_record(root_dir);
+	print_fat();
 }
 
 void read_cluster(int cluster, unsigned char *buffer) {
-	int initial_sector = super.DataSectorStart + cluster * super.SectorsPerCluster;
+	int initial_sector = get_cluster_start_sector(cluster);
 	int i;
 
 	for(i = 0; i < super.SectorsPerCluster; i++) {
@@ -49,10 +57,44 @@ void read_cluster(int cluster, unsigned char *buffer) {
 	}
 }
 
+void read_super_block() {
+	unsigned char buffer[SECTOR_SIZE];
 
+	read_sector (0, buffer);
+	memcpy(&super, buffer, sizeof(super));
+}
 
+void read_fat() {
+	int fat_start = super.pFATSectorStart;
+	int fat_end = super.DataSectorStart;
+	int fat_sectors = fat_end - fat_start;
+	int fat_size = SECTOR_SIZE * fat_sectors;
+	unsigned char sec_buffer[SECTOR_SIZE];
+	int i;
 
-// ================ Remover as funções abaixo para a entrega ===================
+	fat = malloc(fat_size);
+
+	for(i = fat_start; i < fat_end; i++) {
+		read_sector(i, sec_buffer);
+		memcpy(&fat[(i - fat_start) * SECTOR_SIZE / 4], sec_buffer, SECTOR_SIZE);
+	}
+
+	//read_sector (0, buffer);
+	//memcpy(&super, buffer, sizeof(super));
+}
+
+void read_root_dir() {
+	unsigned char buffer[SECTOR_SIZE * super.SectorsPerCluster];
+
+	read_cluster (super.RootDirCluster, buffer);
+	memcpy(&root_dir, buffer, sizeof(root_dir));
+}
+
+int get_cluster_start_sector(int cluster) {
+	return (super.DataSectorStart + cluster * super.SectorsPerCluster);
+}
+
+// ================ Funções para debug ===================
 void print_file_system() {
 	printf("\n========== FILE SYSTEM ==========\n");
 	print_folder(super.RootDirCluster, 0);
@@ -76,16 +118,10 @@ void print_folder(int cluster, int level) {
 			printf("\t");
 		}
 
-		printf("%s  %u bytes (%u clusters)\n", record.name, record.bytesFileSize, record.clustersFileSize);
+		printf("%s  %u bytes (%u clusters) -  %u\n", record.name, record.bytesFileSize, record.clustersFileSize, record.firstCluster);
 
 		if(record.TypeVal == 0x02 && i > 1)
 			print_folder(record.firstCluster, level + 1);
-
-		// printf("\n\nType: %02X\n", record.TypeVal);
-		// printf("Name: %s\n", record.name);
-		// printf("File size: %u bytes\n", record.bytesFileSize);
-		// printf("File size: %u clusters\n", record.clustersFileSize);
-		// printf("First cluster: %u\n", record.firstCluster);
 	}
 }
 
@@ -99,5 +135,24 @@ void print_super_block() {
 	printf("Setors per cluster: %u sectors\n", super.SectorsPerCluster);
 	printf("FAT start sector: %u\n", super.pFATSectorStart);
 	printf("Root cluster: %u\n", super.RootDirCluster);
-	printf("First data sector: %u\n\n", super.DataSectorStart);
+	printf("First data sector: %u\n", super.DataSectorStart);
+}
+
+void print_record(Record record) {
+	printf("\n========== RECORD ==========\n");
+	printf("Type: %02X\n", record.TypeVal);
+	printf("Name: %s\n", record.name);
+	printf("File size: %u bytes\n", record.bytesFileSize);
+	printf("File size: %u clusters\n", record.clustersFileSize);
+	printf("First cluster: %u\n", record.firstCluster);
+}
+
+void print_fat() {
+	int i;
+
+	printf("\n========== FAT ==========\n");
+
+	for(i = 0; i < 20; i++) {
+		printf("%d: %02X\n", i, fat[i]);
+	}
 }
