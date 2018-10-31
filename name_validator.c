@@ -50,6 +50,8 @@ int main() {
   char path2[] = "ends/with/divisor/";
   char path3[] = "/absolute/path";
   char path4[] = "/invalid/absolut_path";
+  char path5[] = "./current/directory";
+  char path6[] = "../../parent/with/multiple/levels";
 
   printf("FILENAMES\n");
   right(name1);
@@ -65,5 +67,7 @@ int main() {
   wrong_path(path2);
   right_path(path3);
   wrong_path(path4);
+  right_path(path5);
+  right_path(path6);
   return 0;
 }

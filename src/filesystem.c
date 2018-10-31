@@ -151,6 +151,12 @@ int path_is_valid(char path[]) {
 	if(is_absolute_path(path)) {
 		return all_names_are_valid(&path[1]);
 	}
+	if(starts_with_current_directory(path)) {
+		return all_names_are_valid(&path[2]);
+	}
+	if(starts_with_parent_directory(path)) {
+		return path_is_valid(&path[3]);
+	}
 	return 0;
 }
 
@@ -186,4 +192,12 @@ int all_names_are_valid(char normalized_path[]) {
 		filename = strtok(NULL, s);
 	}
 	return 1;
+}
+
+int starts_with_current_directory(char path[]) {
+	return path[0] == '.' && path[1] == '/';
+}
+
+int starts_with_parent_directory(char path[]) {
+	return path[0] == '.' && path[1] == '.' && path[2] == DIR_DIVISOR;
 }

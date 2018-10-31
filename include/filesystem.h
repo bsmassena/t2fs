@@ -21,5 +21,7 @@ int path_is_valid(char path[]);
 int has_two_separators_in_a_row(char path[]);
 int ends_with_separator(char path[]);
 int relative_path_is_valid(char path[]);
+int starts_with_current_directory(char path[]);
+int starts_with_parent_directory(char path[]);
 
 #endif
