@@ -5,6 +5,10 @@
 #include "../include/apidisk.h"
 #include "../include/filesystem.h"
 
+#define MINIMUM_FILENAME_SIZE 0
+#define MAXIMUM_FILENAME_SIZE 54
+#define DIR_DIVISOR '/'
+
 
 // struct t2fs_superbloco {
 // 	char    id[4];          	/* Identificação do sistema de arquivo. É formado pelas letras “T2FS”. */
@@ -100,4 +104,100 @@ void print_super_block() {
 	printf("FAT start sector: %u\n", super.pFATSectorStart);
 	printf("Root cluster: %u\n", super.RootDirCluster);
 	printf("First data sector: %u\n\n", super.DataSectorStart);
+}
+
+int file_name_is_valid(char file_name[]) {
+	int i = 0;
+
+	if(!length_is_valid(file_name)) return 0;
+	while(file_name[i] != '\0') {
+		if(!character_is_valid(file_name[i])) {
+			return 0;
+		}
+		i++;
+	}
+	return 1;
+}
+
+int length_is_valid(char file_name[]) {
+	int length = strlen(file_name);
+	return length >= MINIMUM_FILENAME_SIZE && length <= MAXIMUM_FILENAME_SIZE;
+}
+
+int character_is_valid(char character) {
+	return is_capital_case(character) || is_lower_case(character)
+			   || is_number(character);
+}
+
+int is_capital_case(char character) {
+	return character >= 'A' && character <= 'Z';
+}
+
+int is_lower_case(char character) {
+	return character >= 'a' && character <= 'z';
+}
+
+int is_number(char character) {
+	return character >= '0' && character <= '9';
+}
+
+int path_is_valid(char path[]) {
+	if(strlen(path) == 0) return 0;
+	if(has_two_separators_in_a_row(path)) return 0;
+	if(ends_with_separator(path)) return 0;
+	if(character_is_valid(path[0])) {
+		return all_names_are_valid(path);
+	}
+	if(is_absolute_path(path)) {
+		return all_names_are_valid(&path[1]);
+	}
+	if(starts_with_current_directory(path)) {
+		return all_names_are_valid(&path[2]);
+	}
+	if(starts_with_parent_directory(path)) {
+		return path_is_valid(&path[3]);
+	}
+	return 0;
+}
+
+int has_two_separators_in_a_row(char path[]) {
+	int i = 0;
+	while(path[i] != '\0') {
+		if(path[i] == DIR_DIVISOR && path[i + 1] == DIR_DIVISOR){
+			return 1;
+		}
+		i++;
+	}
+	return 0;
+}
+
+int ends_with_separator(char path[]) {
+	int len = strlen(path);
+	return path[len - 1] == DIR_DIVISOR;
+}
+
+int is_absolute_path(char path[]) {
+	return path[0] == DIR_DIVISOR;
+}
+
+int all_names_are_valid(char normalized_path[]) {
+	char s[2] = { DIR_DIVISOR, '\0' };
+	char *filename;
+	char path_copy[strlen(normalized_path)];
+	strcpy(path_copy, normalized_path);
+	filename = strtok(path_copy, s);
+
+	while( filename != NULL ) {
+		if(!file_name_is_valid(filename)) return 0;
+		filename = strtok(NULL, s);
+	}
+	return 1;
+}
+
+int starts_with_current_directory(char path[]) {
+	return path[0] == '.' && path[1] == '/';
+}
+
+int starts_with_parent_directory(char path[]) {
+	return path[0] == '.' && path[1] == '.' && path[2] == DIR_DIVISOR;
 }
