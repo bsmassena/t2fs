@@ -21,10 +21,10 @@ int main() {
 
 	initialize_file_system();
 
-	printf("%d\n", create2("/dir3/teste1.txt"));
-
 	print_fat();
 	print_file_system();
+
+	printf("\n%d\n", rmdir2("/dir3"));
 
 	// printf("Opening file '/file1.txt'\n");
 	// handle = open2("/file1.txt");

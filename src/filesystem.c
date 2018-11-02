@@ -324,6 +324,28 @@ int make_dir (char *pathname) {
     return 0;
 }
 
+int remove_dir(char *pathname) {
+    Descriptor desc;
+
+    // Return if the path isn't valid
+    if(descriptor_from_path(&desc, pathname) < 0) return -1;
+
+    // Return if the given path isn't a directory
+    if(desc.file.TypeVal != TYPEVAL_DIRETORIO) return -1;
+
+    // Return if there is more than 2 records inside folder cluster (. and ..)
+    if(count_records(desc.file.firstCluster) > 2) return -1;
+
+    remove_record(desc.parent.firstCluster, desc.file.name);
+
+    // Update FAT
+    fat[desc.file.firstCluster] = FAT_EMPTY;
+    save_fat();
+
+    return 0;
+}
+
+
 int read_record(int cluster, int index, Record *record) {
     unsigned char buffer[SECTOR_SIZE * super.SectorsPerCluster];
 
@@ -393,6 +415,17 @@ int search_record(int cluster, char *record_name, Record *record) {
         }
     }
     return -1;
+}
+
+int count_records(int cluster) {
+    int i, count = 0;
+    Record record;
+
+    for(i = 0; i < records_per_cluster; i++)
+        if(read_record(cluster, i, &record) == 0)
+            count++;
+        
+    return count;
 }
 
 void initialize_dir_records(Descriptor desc){
