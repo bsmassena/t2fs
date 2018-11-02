@@ -15,35 +15,43 @@ int identify2 (char *name, int size){
 }
 
 FILE2 create2 (char *filename){
-	return (0);
+	initialize_file_system();
+	return create_file(filename);
 }
 
 int delete2 (char *filename){
-	return (0);
+	initialize_file_system();
+	return delete_file(filename);
 }
 
 FILE2 open2 (char *filename){
-	return (0);
+	initialize_file_system();
+	return open_file(filename);
 }
 
 int close2 (FILE2 handle){
-	return (0);
+	initialize_file_system();
+	return close_file(handle);
 }
 
 int read2 (FILE2 handle, char *buffer, int size){
-	return (0);
+	initialize_file_system();
+	return read_file(handle, buffer, size);
 }
 
 int write2 (FILE2 handle, char *buffer, int size){
-	return (0);
+	initialize_file_system();
+	return write_file(handle, buffer, size);
 }
 
 int truncate2 (FILE2 handle){
-	return (0);
+	initialize_file_system();
+	return truncate_file(handle);
 }
 
 int seek2 (FILE2 handle, DWORD offset){
-	return (0);
+	initialize_file_system();
+	return seek_file(handle, offset);
 }
 
 int mkdir2 (char *pathname){
