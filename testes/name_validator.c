@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./include/t2fs.h"
-#include "./include/apidisk.h"
-#include "./include/filesystem.h"
+#include "../include/t2fs.h"
+#include "../include/apidisk.h"
+#include "../include/filesystem.h"
 
 void wrong(char filename[]) {
   if(file_name_is_valid(filename)) {
