@@ -500,8 +500,12 @@ int descriptor_from_path(Descriptor *descriptor, char *filename) {
     char *token, last_token[51];
     char path_copy[strlen(filename)];
 
+    // Return if the given path isn't valid
+    // if(!path_is_valid(filename)) return -1;
+
     strcpy(path_copy, filename);
 
+    // Starts from root or current_dir
     if(path_copy[0] == '/')
         memcpy(&descriptor->file, &root_dir, sizeof(Record));
     else
@@ -539,6 +543,88 @@ int remove_handle(FILE2 handle) {
         }
     }
     return -1;
+}
+
+int file_name_is_valid(char file_name[]) {
+    int i = 0;
+    if(!length_is_valid(file_name)) return 0;
+    while(file_name[i] != '\0') {
+        if(!character_is_valid(file_name[i])) {
+            return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+int length_is_valid(char file_name[]) {
+    int length = strlen(file_name);
+    return length >= MINIMUM_FILENAME_SIZE && length <= MAXIMUM_FILENAME_SIZE;
+}
+int character_is_valid(char character) {
+    return is_capital_case(character) || is_lower_case(character)
+            || is_number(character);
+}
+int is_capital_case(char character) {
+    return character >= 'A' && character <= 'Z';
+}
+int is_lower_case(char character) {
+    return character >= 'a' && character <= 'z';
+}
+int is_number(char character) {
+    return character >= '0' && character <= '9';
+}
+int path_is_valid(char path[]) {
+    if(strlen(path) == 0) return 0;
+    if(has_two_separators_in_a_row(path)) return 0;
+    if(ends_with_separator(path)) return 0;
+    if(character_is_valid(path[0])) {
+        return all_names_are_valid(path);
+    }
+    if(is_absolute_path(path)) {
+        return all_names_are_valid(&path[1]);
+    }
+    if(starts_with_current_directory(path)) {
+        return all_names_are_valid(&path[2]);
+    }
+    if(starts_with_parent_directory(path)) {
+        return path_is_valid(&path[3]);
+    }
+    return 0;
+}
+int has_two_separators_in_a_row(char path[]) {
+    int i = 0;
+    while(path[i] != '\0') {
+        if(path[i] == DIR_DIVISOR && path[i + 1] == DIR_DIVISOR){
+            return 1;
+        }
+        i++;
+    }
+    return 0;
+}
+int ends_with_separator(char path[]) {
+    int len = strlen(path);
+    return path[len - 1] == DIR_DIVISOR;
+}
+int is_absolute_path(char path[]) {
+    return path[0] == DIR_DIVISOR;
+}
+int all_names_are_valid(char normalized_path[]) {
+    char s[2] = { DIR_DIVISOR, '\0' };
+    char *filename;
+    char path_copy[strlen(normalized_path)];
+    strcpy(path_copy, normalized_path);
+    filename = strtok(path_copy, s);
+    while( filename != NULL ) {
+        if(!file_name_is_valid(filename)) return 0;
+        filename = strtok(NULL, s);
+    }
+    return 1;
+}
+int starts_with_current_directory(char path[]) {
+    return path[0] == '.' && path[1] == '/';
+}
+int starts_with_parent_directory(char path[]) {
+    return path[0] == '.' && path[1] == '.' && path[2] == DIR_DIVISOR;
 }
 
 // ================ Funções para debug ===================

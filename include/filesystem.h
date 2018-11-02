@@ -13,6 +13,9 @@ typedef struct {
     Record 	parent;
 } Descriptor;
 
+#define MINIMUM_FILENAME_SIZE 0
+#define MAXIMUM_FILENAME_SIZE 54
+#define DIR_DIVISOR '/'
 
 #define	FAT_EMPTY 0
 #define	FAT_END -1
@@ -63,6 +66,22 @@ void clear_descriptors();
 int create_global_descriptor(Descriptor desc);
 int descriptor_from_path(Descriptor *descriptor, char *filename);
 int remove_handle(FILE2 handle);
+
+// Name validation
+int file_name_is_valid(char file_name[]);
+int character_is_valid(char character);
+int is_capital_case(char character);
+int is_lower_case(char character);
+int is_number(char character);
+int length_is_valid(char file_name[]);
+int path_is_valid(char path[]);
+int has_two_separators_in_a_row(char path[]);
+int ends_with_separator(char path[]);
+int relative_path_is_valid(char path[]);
+int is_absolute_path(char path[]);
+int all_names_are_valid(char normalized_path[]);
+int starts_with_current_directory(char path[]);
+int starts_with_parent_directory(char path[]);
 
 // Debug functions
 void print_file_system();
