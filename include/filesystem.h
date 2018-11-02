@@ -46,6 +46,7 @@ int seek_file(FILE2 handle, DWORD offset);
 int make_dir (char *pathname);
 int remove_dir (char *pathname);
 int remove_dir (char *pathname);
+int change_dir (char *pathname);
 
 // Record functions
 int read_record(int cluster, int index, Record *record);

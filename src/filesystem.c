@@ -345,6 +345,21 @@ int remove_dir(char *pathname) {
     return 0;
 }
 
+int change_dir (char *pathname) {
+    Descriptor desc;
+
+    // Return if the path isn't valid
+    if(descriptor_from_path(&desc, pathname) < 0) return -1;
+
+    // Return if the given path isn't a directory
+    if(desc.file.TypeVal != TYPEVAL_DIRETORIO) return -1;
+
+    strcpy(curr_dir.name, desc.file.name); 
+    curr_dir.firstCluster = desc.file.firstCluster;
+
+    return 0;
+}
+
 
 int read_record(int cluster, int index, Record *record) {
     unsigned char buffer[SECTOR_SIZE * super.SectorsPerCluster];

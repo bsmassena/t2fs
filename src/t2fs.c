@@ -65,7 +65,8 @@ int rmdir2 (char *pathname){
 }
 
 int chdir2 (char *pathname){
-	return (0);
+	initialize_file_system();
+	return change_dir(pathname);
 }
 
 int getcwd2 (char *pathname, int size){
