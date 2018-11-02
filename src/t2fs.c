@@ -55,7 +55,8 @@ int seek2 (FILE2 handle, DWORD offset){
 }
 
 int mkdir2 (char *pathname){
-	return (0);
+	initialize_file_system();
+	return make_dir(pathname);
 }
 
 int rmdir2 (char *pathname){
