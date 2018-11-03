@@ -298,17 +298,68 @@ int seek_file(FILE2 handle, DWORD offset) {
     return 0;
 }
 
-void init_record(Record *record, int type, char *filename, int cluster) {
-    record->TypeVal = type;
-    strcpy(record->name, filename);
-    record->clustersFileSize = 1;
-    record->firstCluster = cluster;
+// Dir functions
+int make_dir (char *pathname) {
+    Descriptor desc;
+    int dir_cluster = find_free_cluster();
 
-    if(type == TYPEVAL_REGULAR)
-        record->bytesFileSize = 0;
-    else
-        record->bytesFileSize = 1024;
+    // Return if the path isn't valid
+    if(descriptor_from_path(&desc, pathname) < 0) return -1;
+
+    desc.file.TypeVal = TYPEVAL_DIRETORIO;
+    desc.file.bytesFileSize = 1024;
+    desc.file.clustersFileSize = 1;
+    desc.file.firstCluster = dir_cluster;
+
+    // Return if can't create a record
+    if(write_record(desc.parent.firstCluster, &desc.file) < 0) return -1;
+
+    // Create . and ..
+    initialize_dir_records(desc);
+
+    // Update FAT
+    fat[dir_cluster] = FAT_END;
+    save_fat();
+
+    return 0;
 }
+
+int remove_dir(char *pathname) {
+    Descriptor desc;
+
+    // Return if the path isn't valid
+    if(descriptor_from_path(&desc, pathname) < 0) return -1;
+
+    // Return if the given path isn't a directory
+    if(desc.file.TypeVal != TYPEVAL_DIRETORIO) return -1;
+
+    // Return if there is more than 2 records inside folder cluster (. and ..)
+    if(count_records(desc.file.firstCluster) > 2) return -1;
+
+    remove_record(desc.parent.firstCluster, desc.file.name);
+
+    // Update FAT
+    fat[desc.file.firstCluster] = FAT_EMPTY;
+    save_fat();
+
+    return 0;
+}
+
+int change_dir (char *pathname) {
+    Descriptor desc;
+
+    // Return if the path isn't valid
+    if(descriptor_from_path(&desc, pathname) < 0) return -1;
+
+    // Return if the given path isn't a directory
+    if(desc.file.TypeVal != TYPEVAL_DIRETORIO) return -1;
+
+    strcpy(curr_dir.name, desc.file.name); 
+    curr_dir.firstCluster = desc.file.firstCluster;
+
+    return 0;
+}
+
 
 int read_record(int cluster, int index, Record *record) {
     unsigned char buffer[SECTOR_SIZE * super.SectorsPerCluster];
@@ -380,6 +431,40 @@ int search_record(int cluster, char *record_name, Record *record) {
     }
     return -1;
 }
+
+int count_records(int cluster) {
+    int i, count = 0;
+    Record record;
+
+    for(i = 0; i < records_per_cluster; i++)
+        if(read_record(cluster, i, &record) == 0)
+            count++;
+        
+    return count;
+}
+
+void initialize_dir_records(Descriptor desc){
+    Record self, parent;
+
+    clear_cluster(desc.file.firstCluster);
+
+    self.TypeVal = TYPEVAL_DIRETORIO;
+    strcpy(self.name, ".");
+    self.bytesFileSize = 1024;
+    self.clustersFileSize = 1;
+    self.firstCluster = desc.file.firstCluster;
+
+    write_record(desc.file.firstCluster, &self);
+
+    parent.TypeVal = TYPEVAL_DIRETORIO;
+    strcpy(parent.name, "..");
+    parent.bytesFileSize = 1024;
+    parent.clustersFileSize = 1;
+    parent.firstCluster = desc.parent.firstCluster;
+
+    write_record(desc.file.firstCluster, &parent);
+}
+
 
 void save_fat() {
     int fat_start = super.pFATSectorStart;

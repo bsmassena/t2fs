@@ -21,26 +21,33 @@ int main() {
 
 	initialize_file_system();
 
-	printf("Opening file '/file1.txt'\n");
-	handle = open2("/file1.txt");
-	printf("Returned handle: %d\n", handle);
+	// print_fat();
+	// print_file_system();
 
-	print_file(handle);
+	printf("\n%d\n", chdir2("/dir1/file1.txt"));
 
-	printf("Seeking to 55\n");
-	seek2(handle, 55);
+	// printf("Opening file '/file1.txt'\n");
+	// handle = open2("/file1.txt");
+	// printf("Returned handle: %d\n", handle);
 
-	printf("Truncating file\n");
-	truncate2(handle);
+	// print_file(handle);
 
-	print_file(handle);
+	// printf("Seeking to 55\n");
+	// seek2(handle, 55);
 
-	printf("Seeking back to 0\n");
-	seek2(handle, 0);
-	print_file(handle);
+	// printf("Truncating file\n");
+	// truncate2(handle);
 
-	printf("Closing file with handle %d\n", handle);
-	close2(handle);
+	// print_file(handle);
+
+	// printf("Seeking back to 0\n");
+	// seek2(handle, 0);
+	// print_file(handle);
+
+	// printf("Closing file with handle %d\n", handle);
+	// close2(handle);
+
+
 
 	// seek2(handle, 0);
 
@@ -59,9 +66,6 @@ int main() {
 	// printf("\n%d lidos: %s", read, buffer);
 
 	// close2(handle);
-
-	//print_file_system();
-	//print_fat();
 
 	printf("\n==========================================\n");
 	return 0;

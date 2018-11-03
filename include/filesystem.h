@@ -42,12 +42,19 @@ int write_file(FILE2 handle, char *buffer, int size);
 int truncate_file(FILE2 handle);
 int seek_file(FILE2 handle, DWORD offset);
 
+// Dir functions
+int make_dir (char *pathname);
+int remove_dir (char *pathname);
+int remove_dir (char *pathname);
+int change_dir (char *pathname);
+
 // Record functions
-void init_record(Record *record, int type, char *filename, int cluster);
 int read_record(int cluster, int index, Record *record);
 int write_record(int cluster, Record *record);
 int remove_record(int cluster, char *record_name);
 int search_record(int cluster, char *record_name, Record *record);
+int count_records(int cluster);
+void initialize_dir_records(Descriptor desc);
 
 // FAT functions
 void save_fat();
