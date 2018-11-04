@@ -358,11 +358,11 @@ int change_dir (char *pathname) {
 
     strcpy(curr_dir.name, desc.file.name); 
     curr_dir.firstCluster = desc.file.firstCluster;
-    current_path = update_current_path(current_path, pathname);
+    current_path = update_path(current_path, pathname);
     return 0;
 }
 
-char* update_current_path(char *pathname, char *displace) {
+char* update_path(char *pathname, char *displace) {
     if(strlen(displace) == 0) return pathname;
     if(is_absolute_path(displace)) {
         free(pathname);
@@ -371,11 +371,11 @@ char* update_current_path(char *pathname, char *displace) {
         return pathname;
     }
     if(starts_with_current_directory(displace)) {
-        return update_current_path(pathname, &displace[2]);
+        return update_path(pathname, &displace[2]);
     }
     if(starts_with_parent_directory(displace)) {
         pathname = remove_last_dir_from_path(pathname);
-        return update_current_path(pathname, &displace[3]);
+        return update_path(pathname, &displace[3]);
     }
     return append_to_path(pathname, displace);
 }
