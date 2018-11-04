@@ -36,6 +36,7 @@ Record root_dir;
 Record curr_dir;
 Descriptor descriptors[DESCRIPTORS_SIZE];
 DWORD *fat;
+char *current_path;
 
 int fat_entries = 0;
 int records_per_cluster = 0;
@@ -49,6 +50,7 @@ void initialize_file_system() {
     read_fat();
     read_root_dir();
     clear_descriptors();
+    current_path = (char*) malloc(2 * sizeof(char));
 
     initialized = 1;
     records_per_cluster = RECORDS_PER_SECTOR * super.SectorsPerCluster;
@@ -356,8 +358,55 @@ int change_dir (char *pathname) {
 
     strcpy(curr_dir.name, desc.file.name); 
     curr_dir.firstCluster = desc.file.firstCluster;
-
+    update_current_path(pathname);
     return 0;
+}
+
+void update_current_path(char *pathname) {
+    if(strlen(pathname) == 0) return;
+    if(is_absolute_path(pathname)) {
+        free(current_path);
+        current_path = (char*) malloc((strlen(pathname) + 2) * sizeof(char));
+        strcpy(current_path, pathname);
+        if(!(strcmp(current_path, "/") == 0)) {
+            strcat(current_path, "/");
+        }
+        return;
+    }
+    if(starts_with_current_directory(pathname)) {
+        update_current_path(&pathname[2]);
+        return;
+    }
+    if(starts_with_parent_directory(pathname)) {
+        remove_last_dir_from_current_path();
+        update_current_path(&pathname[3]);
+        return;
+    }
+    append_to_current_path(pathname);
+}
+
+void remove_last_dir_from_current_path() {
+    int size = strlen(current_path);
+    char *aux_ptr;
+    size -= 2;
+    do {
+        size--;
+    } while(current_path[size] != '/');
+    current_path[size + 1] = '\0';
+    aux_ptr = (char*) malloc((strlen(current_path) + 1) * sizeof(char));
+    strcpy(aux_ptr, current_path);
+    free(current_path);
+    current_path = aux_ptr;
+}
+
+void append_to_current_path(char *pathname) {
+    char *aux;
+    aux = (char*) malloc((strlen(current_path) + strlen(pathname) + 1) * sizeof(char));
+    strcpy(aux, current_path);
+    strcat(aux, pathname);
+    strcat(aux, "/");
+    free(current_path);
+    current_path = aux;
 }
 
 
@@ -777,4 +826,10 @@ void print_fat() {
     for(i = 0; i < 20; i++) {
         printf("%d: %02X\n", i, fat[i]);
     }
+}
+
+int get_current_work_directory(char pathname[], int size) {
+    if (size <= strlen(pathname)) return -1;
+    strncpy(pathname, current_path, size);
+    return 0;
 }
