@@ -98,8 +98,9 @@ void print_record(Record record);
 void print_fat();
 
 // Current path update functions
-void update_current_path(char *pathname);
-void remove_last_dir_from_current_path();
-void append_to_current_path(char *pathname);
+char* update_current_path(char *pathname, char *displace);
+char* remove_last_dir_from_path(char *pathname);
+char* append_to_path(char *pathname, char *displace);
+int get_current_work_directory(char pathname[], int size);
 
 #endif

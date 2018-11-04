@@ -358,55 +358,59 @@ int change_dir (char *pathname) {
 
     strcpy(curr_dir.name, desc.file.name); 
     curr_dir.firstCluster = desc.file.firstCluster;
-    update_current_path(pathname);
+    current_path = update_current_path(current_path, pathname);
     return 0;
 }
 
-void update_current_path(char *pathname) {
-    if(strlen(pathname) == 0) return;
-    if(is_absolute_path(pathname)) {
-        free(current_path);
-        current_path = (char*) malloc((strlen(pathname) + 2) * sizeof(char));
-        strcpy(current_path, pathname);
-        if(!(strcmp(current_path, "/") == 0)) {
-            strcat(current_path, "/");
-        }
-        return;
+char* update_current_path(char *pathname, char *displace) {
+    if(strlen(displace) == 0) return pathname;
+    if(is_absolute_path(displace)) {
+        free(pathname);
+        pathname = (char*) malloc((strlen(displace) + 1) * sizeof(char));
+        strcpy(pathname, displace);
+        return pathname;
     }
-    if(starts_with_current_directory(pathname)) {
-        update_current_path(&pathname[2]);
-        return;
+    if(starts_with_current_directory(displace)) {
+        return update_current_path(pathname, &displace[2]);
     }
-    if(starts_with_parent_directory(pathname)) {
-        remove_last_dir_from_current_path();
-        update_current_path(&pathname[3]);
-        return;
+    if(starts_with_parent_directory(displace)) {
+        pathname = remove_last_dir_from_path(pathname);
+        return update_current_path(pathname, &displace[3]);
     }
-    append_to_current_path(pathname);
+    return append_to_path(pathname, displace);
 }
 
-void remove_last_dir_from_current_path() {
-    int size = strlen(current_path);
+char* remove_last_dir_from_path(char *pathname) {
+    int size = strlen(pathname);
     char *aux_ptr;
-    size -= 2;
-    do {
+    if(strcmp(pathname, "/") == 0) return pathname;
+
+    while(pathname[size] != '/') {
         size--;
-    } while(current_path[size] != '/');
-    current_path[size + 1] = '\0';
-    aux_ptr = (char*) malloc((strlen(current_path) + 1) * sizeof(char));
-    strcpy(aux_ptr, current_path);
-    free(current_path);
-    current_path = aux_ptr;
+    }
+    pathname[size] = '\0';
+    aux_ptr = (char*) malloc((strlen(pathname) + 1) * sizeof(char));
+    strcpy(aux_ptr, pathname);
+    free(pathname);
+    return aux_ptr;
 }
 
-void append_to_current_path(char *pathname) {
+char* append_to_path(char *pathname, char *displace) {
     char *aux;
-    aux = (char*) malloc((strlen(current_path) + strlen(pathname) + 1) * sizeof(char));
-    strcpy(aux, current_path);
-    strcat(aux, pathname);
+    if(strcmp(pathname, "/") == 0) {
+        aux = (char*) malloc((strlen(displace) + 2) * sizeof(char));
+        aux[0] = '/';
+        aux[1] = '\0';
+        strcat(aux, displace);
+        free(pathname);
+        return aux;
+    }
+    aux = (char*) malloc((strlen(pathname) + strlen(displace) + 2) * sizeof(char));
+    strcpy(aux, pathname);
     strcat(aux, "/");
-    free(current_path);
-    current_path = aux;
+    strcat(aux, displace);
+    free(pathname);
+    return aux;
 }
 
 
