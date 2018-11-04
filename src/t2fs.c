@@ -70,7 +70,8 @@ int chdir2 (char *pathname){
 }
 
 int getcwd2 (char *pathname, int size){
-	return (0);
+	initialize_file_system();
+	return get_current_work_directory(pathname, size);
 }
 
 DIR2 opendir2 (char *pathname){

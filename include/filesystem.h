@@ -7,19 +7,19 @@ typedef struct t2fs_superbloco Super;
 typedef struct t2fs_record Record;
 
 typedef struct {
-    int 	handle;
-    int 	curr_pointer;
-    Record 	file;
-    Record 	parent;
+    int   handle;
+    int   curr_pointer;
+    Record  file;
+    Record  parent;
 } Descriptor;
 
 #define MINIMUM_FILENAME_SIZE 0
 #define MAXIMUM_FILENAME_SIZE 54
 #define DIR_DIVISOR '/'
 
-#define	FAT_EMPTY 0
-#define	FAT_END -1
-#define	FAT_INVALID -2
+#define FAT_EMPTY 0
+#define FAT_END -1
+#define FAT_INVALID -2
 
 #define RECORDS_PER_SECTOR 4
 
@@ -96,5 +96,10 @@ void print_folder(int cluster, int level);
 void print_super_block();
 void print_record(Record record);
 void print_fat();
+
+// Current path update functions
+void update_current_path(char *pathname);
+void remove_last_dir_from_current_path();
+void append_to_current_path(char *pathname);
 
 #endif
