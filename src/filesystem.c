@@ -96,7 +96,7 @@ void read_root_dir() {
     memcpy(&root_dir, buffer, sizeof(root_dir));
 }
 
-int create_file(char *filename) {
+int create_file(char *filename, BYTE typeval) {
     unsigned char buffer[SECTOR_SIZE * super.SectorsPerCluster];
     Descriptor desc;
     int file_cluster = find_free_cluster();
@@ -105,7 +105,7 @@ int create_file(char *filename) {
     // Return if the path isn't valid
     if(descriptor_from_path(&desc, filename) < 0) return -1;
 
-    desc.file.TypeVal = TYPEVAL_REGULAR;
+    desc.file.TypeVal = typeval;
     desc.file.bytesFileSize = 0;
     desc.file.clustersFileSize = 1;
     desc.file.firstCluster = file_cluster;
@@ -150,6 +150,7 @@ int delete_file(char *filename) {
 int open_file (char *filename) {
     Descriptor desc;
     int handle;
+    char link_content[256];
 
     // Return if the path isn't valid
     if(descriptor_from_path(&desc, filename) < 0) return -1;
@@ -160,6 +161,14 @@ int open_file (char *filename) {
 
     // Return if can't create a handle
     if(handle < 0) return -1;
+
+    if(desc.file.TypeVal == TYPEVAL_LINK) {
+        if(read_file(handle, link_content, 256) < 0) {
+            return -1;
+        }
+        close_file(handle);
+        return open_file(link_content);
+    }
 
     return handle;
 }
@@ -837,3 +846,37 @@ int get_current_work_directory(char pathname[], int size) {
     strncpy(pathname, current_path, size);
     return 0;
 }
+
+int create_link(char *linkname, char *filename) {
+    unsigned char buffer[SECTOR_SIZE * super.SectorsPerCluster];
+    char *filecontent;
+    Descriptor desc;
+    int file_cluster = find_free_cluster();
+
+    // Return if the path isn't valid
+    if(descriptor_from_path(&desc, linkname) < 0) return -1;
+
+    desc.file.TypeVal = TYPEVAL_LINK;
+    desc.file.bytesFileSize = 1024;
+    desc.file.clustersFileSize = 1;
+    desc.file.firstCluster = file_cluster;
+
+    // Return if can't create a record
+    if(write_record(desc.parent.firstCluster, &desc.file) < 0) return -1;
+
+    // Write file path to link cluster
+    filecontent = malloc((strlen(current_path) + 1) * sizeof(char));
+    strcpy(filecontent, current_path);
+    filecontent = append_to_path(filecontent, filename);
+    strcpy((char *)buffer, filecontent);
+    write_cluster(file_cluster, buffer);
+
+    // Update FAT
+    fat[file_cluster] = FAT_END;
+    save_fat();
+
+    free(filecontent);
+
+    return 0;
+}
+

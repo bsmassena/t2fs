@@ -16,7 +16,7 @@ int identify2 (char *name, int size){
 
 FILE2 create2 (char *filename){
 	initialize_file_system();
-	return create_file(filename);
+	return create_file(filename, TYPEVAL_REGULAR);
 }
 
 int delete2 (char *filename){
@@ -87,5 +87,6 @@ int closedir2 (DIR2 handle){
 }
 
 int ln2(char *linkname, char *filename){
-	return (0);
+	initialize_file_system();
+	return create_link(linkname, filename);
 }

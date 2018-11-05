@@ -23,7 +23,7 @@ typedef struct {
 
 #define RECORDS_PER_SECTOR 4
 
-#define DESCRIPTORS_SIZE 20
+#define DESCRIPTORS_SIZE 10
 
 
 // Initialize functions
@@ -33,7 +33,7 @@ void read_fat();
 void read_root_dir();
 
 // File functions
-int create_file(char *filename);
+int create_file(char *filename, BYTE typeval);
 int delete_file(char *filename);
 int open_file(char *filename);
 int close_file(FILE2 handle);
@@ -102,5 +102,8 @@ char* update_path(char *pathname, char *displace);
 char* remove_last_dir_from_path(char *pathname);
 char* append_to_path(char *pathname, char *displace);
 int get_current_work_directory(char pathname[], int size);
+
+// Link
+int create_link(char *linkname, char *filename);
 
 #endif
