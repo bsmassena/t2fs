@@ -848,21 +848,35 @@ int get_current_work_directory(char pathname[], int size) {
 }
 
 int create_link(char *linkname, char *filename) {
-    FILE2 link_file;
+    unsigned char buffer[SECTOR_SIZE * super.SectorsPerCluster];
     char *filecontent;
-    if(!path_is_valid(linkname)) return -1;
-    if((link_file = create_file(linkname, TYPEVAL_LINK)) < 0) {
-        return -1;
-    }
+    Descriptor desc;
+    int file_cluster = find_free_cluster();
+
+    // Return if the path isn't valid
+    if(descriptor_from_path(&desc, linkname) < 0) return -1;
+
+    desc.file.TypeVal = TYPEVAL_LINK;
+    desc.file.bytesFileSize = 1024;
+    desc.file.clustersFileSize = 1;
+    desc.file.firstCluster = file_cluster;
+
+    // Return if can't create a record
+    if(write_record(desc.parent.firstCluster, &desc.file) < 0) return -1;
+
+    // Write file path to link cluster
     filecontent = malloc((strlen(current_path) + 1) * sizeof(char));
     strcpy(filecontent, current_path);
     filecontent = append_to_path(filecontent, filename);
+    strcpy((char *)buffer, filecontent);
+    write_cluster(file_cluster, buffer);
 
-    if(write_file(link_file, filecontent, strlen(filecontent) + 1) != strlen(filecontent) + 1) {
-        return -1;
-    }
+    // Update FAT
+    fat[file_cluster] = FAT_END;
+    save_fat();
 
-    close_file(link_file);
     free(filecontent);
+
     return 0;
 }
+

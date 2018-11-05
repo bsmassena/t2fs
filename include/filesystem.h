@@ -23,7 +23,7 @@ typedef struct {
 
 #define RECORDS_PER_SECTOR 4
 
-#define DESCRIPTORS_SIZE 20
+#define DESCRIPTORS_SIZE 10
 
 
 // Initialize functions

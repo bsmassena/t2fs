@@ -87,5 +87,6 @@ int closedir2 (DIR2 handle){
 }
 
 int ln2(char *linkname, char *filename){
+	initialize_file_system();
 	return create_link(linkname, filename);
 }

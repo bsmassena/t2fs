@@ -9,16 +9,19 @@ int main() {
   FILE2 arq;
   char conteudo[] = "Conteudo do arquivo";
   char resultado[strlen(conteudo) + 1];
+
   mkdir2("diretorio");
   mkdir2("outroDiretorio");
   chdir2("diretorio");
   mkdir2("diretorio2");
   chdir2("diretorio2");
+
   arq = create2("arquivo");
   if(write2(arq, conteudo, strlen(conteudo) + 1) != strlen(conteudo) + 1) {
     printf("Erro na escrita do arquivo.\n");
     exit(1);
   }
+
   close2(arq);
   chdir2("/");
   if(ln2("link", "diretorio/diretorio2/arquivo") != 0) {
@@ -33,6 +36,9 @@ int main() {
     printf("Erro na leitura do link.\n");
     exit(1);
   }
-  printf("O conteudo do link eh: %s\n", resultado);
+  printf("O conteudo do link eh: %s| %d bytes\n", resultado, strlen(resultado));
+
+  print_fat();
+  print_file_system();
   return 0;
 }
