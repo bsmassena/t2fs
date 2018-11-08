@@ -2,7 +2,7 @@ CC=gcc
 LIB_DIR=../lib
 FLAGS=-L$(LIB_DIR) -lt2fs -lm -Wall
 
-all: teste name_validator getcwd link
+all: teste name_validator getcwd link read_write
 
 teste: teste.o $(LIB_DIR)/libt2fs.a
 	$(CC) -o teste teste.o $(FLAGS)
@@ -27,5 +27,10 @@ link: link.o $(LIB_DIR)/libt2fs.a
 link.o: link.c
 	$(CC) -c link.c -Wall
 
+read_write: read_write.o $(LIB_DIR)/libt2fs.a
+	$(CC) -o read_write read_write.o $(FLAGS)
+read_write.o: read_write.c
+	$(CC) -c read_write.c -Wall
+
 clean:
-	rm *.o teste name_validator
+	rm *.o teste name_validator getcwd link

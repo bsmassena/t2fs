@@ -97,7 +97,6 @@ void read_root_dir() {
 }
 
 int create_file(char *filename, BYTE typeval) {
-    unsigned char buffer[SECTOR_SIZE * super.SectorsPerCluster];
     Descriptor desc;
     int file_cluster = find_free_cluster();
     int handle;
@@ -117,10 +116,6 @@ int create_file(char *filename, BYTE typeval) {
 
     // Return if can't create a handle
     if(handle < 0) return -1;
-
-    // Write EOF at file
-    buffer[0] = EOF;
-    write_cluster(file_cluster, buffer);
 
     // Update FAT
     fat[file_cluster] = FAT_END;
@@ -173,11 +168,11 @@ int open_file (char *filename) {
     return handle;
 }
 
-int close_file (FILE2 handle) {
+int close_file(FILE2 handle) {
     return remove_handle(handle);
 }
 
-int read_file (FILE2 handle, char *buffer, int size) {
+int read_file(FILE2 handle, char *buffer, int size) {
     Descriptor desc = descriptors[handle - 1];
     int bytes_left, cluster_to_read, i;
 
@@ -226,12 +221,10 @@ int write_file(FILE2 handle, char *buffer, int size) {
         clusters_needed = ceil((float)(desc.curr_pointer + size) / (SECTOR_SIZE * super.SectorsPerCluster)) - desc.file.clustersFileSize;
         desc.file.bytesFileSize = desc.curr_pointer + size;
     } else {
-        clusters_needed = ceil((float)(desc.file.bytesFileSize + size) / (SECTOR_SIZE * super.SectorsPerCluster)) - desc.file.clustersFileSize;
+        clusters_needed = 0;
     }
 
     clusters_allocated = increase_fat_sequence(cluster, clusters_needed) + desc.file.clustersFileSize;
-
-    file[desc.file.bytesFileSize] = EOF;
 
     // Write entire file back to disk
     for(i = 0; i < clusters_allocated; i++) {
@@ -265,7 +258,6 @@ int truncate_file (FILE2 handle) {
         cluster = fat[cluster];
     }
 
-    file[desc.curr_pointer] = EOF;
     cluster = desc.file.firstCluster;
 
     // Write entire file back to disk
@@ -310,7 +302,7 @@ int seek_file(FILE2 handle, DWORD offset) {
 }
 
 // Dir functions
-int make_dir (char *pathname) {
+int make_dir(char *pathname) {
     Descriptor desc;
     int dir_cluster = find_free_cluster();
 
@@ -356,7 +348,7 @@ int remove_dir(char *pathname) {
     return 0;
 }
 
-int change_dir (char *pathname) {
+int change_dir(char *pathname) {
     Descriptor desc;
 
     // Return if the path isn't valid
@@ -369,6 +361,39 @@ int change_dir (char *pathname) {
     curr_dir.firstCluster = desc.file.firstCluster;
     current_path = update_path(current_path, pathname);
     return 0;
+}
+
+DIR2 open_dir(char *pathname) {
+    Descriptor desc;
+
+    // Return if the path isn't valid
+    if(descriptor_from_path(&desc, pathname) < 0) return -1;
+    if(desc.file.TypeVal != TYPEVAL_DIRETORIO) return -1;
+
+    return create_global_descriptor(desc);
+}
+
+int read_dir(DIR2 handle, DIRENT2 *dentry) {
+    Descriptor desc = descriptors[handle - 1];
+    Record record;
+    int i;
+
+    for(i = desc.curr_pointer; i < records_per_cluster; i++) {
+        // If the record is valid
+        if(read_record(desc.file.firstCluster, i, &record) == 0) {
+            strcpy(dentry->name, record.name);
+            dentry->fileType = record.TypeVal;
+            dentry->fileSize = record.bytesFileSize;
+            descriptors[handle - 1].curr_pointer = i + 1;
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
+int close_dir(DIR2 handle) {
+    return remove_handle(handle);
 }
 
 char* update_path(char *pathname, char *displace) {
@@ -569,15 +594,16 @@ int increase_fat_sequence(int initial_cluster, int clusters) {
 
     for(i = 0; i < clusters; i++) {
         new_cluster = find_free_cluster();
+
         if(new_cluster < 0) {
             fat[initial_cluster] = FAT_END;
             return i;
         }
         fat[initial_cluster] = new_cluster;
+        fat[new_cluster] = FAT_END;
         initial_cluster = new_cluster;
     }
 
-    fat[initial_cluster] = FAT_END;
     return clusters;
 }
 
@@ -834,10 +860,10 @@ void print_record(Record record) {
 void print_fat() {
     int i;
 
-    printf("\n========== FAT (20 ENTRADAS) ==========\n");
+    printf("\n========== FAT (30 ENTRADAS) ==========\n");
 
-    for(i = 0; i < 20; i++) {
-        printf("%d: %02X\n", i, fat[i]);
+    for(i = 0; i < 30; i++) {
+        printf("%u: %u\n", i, fat[i]);
     }
 }
 
