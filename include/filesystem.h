@@ -43,10 +43,13 @@ int truncate_file(FILE2 handle);
 int seek_file(FILE2 handle, DWORD offset);
 
 // Dir functions
-int make_dir (char *pathname);
-int remove_dir (char *pathname);
-int remove_dir (char *pathname);
-int change_dir (char *pathname);
+int make_dir(char *pathname);
+int remove_dir(char *pathname);
+int remove_dir(char *pathname);
+int change_dir(char *pathname);
+DIR2 open_dir(char *pathname);
+int read_dir(DIR2 handle, DIRENT2 *dentry);
+int close_dir(DIR2 handle);
 
 // Record functions
 int read_record(int cluster, int index, Record *record);

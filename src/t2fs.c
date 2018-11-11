@@ -75,15 +75,18 @@ int getcwd2 (char *pathname, int size){
 }
 
 DIR2 opendir2 (char *pathname){
-	return (0);
+	initialize_file_system();
+	return open_dir(pathname);
 }
 
 int readdir2 (DIR2 handle, DIRENT2 *dentry){
-	return (0);
+	initialize_file_system();
+	return read_dir(handle, dentry);
 }
 
 int closedir2 (DIR2 handle){
-	return (0);
+	initialize_file_system();
+	return close_dir(handle);
 }
 
 int ln2(char *linkname, char *filename){

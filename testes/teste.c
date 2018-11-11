@@ -5,26 +5,33 @@
 #include "../include/apidisk.h"
 #include "../include/filesystem.h"
 
-char buffer[10000];
-
-void print_file(int handle) {
-	int bytes_read = 0;
-	bytes_read = read2(handle, buffer, 1000);
-	buffer[bytes_read] = '\0';
-	printf("%d bytes read: %s\n", bytes_read, buffer);
+void print_dentry(DIRENT2 dentry) {
+	printf("Name: %s\n", dentry.name);
+	printf("Type: %d\n", dentry.fileType);
+	printf("Size: %d\n\n", dentry.fileSize);
 }
 
 int main() {
-	int handle = 0, write = 0;
+	int handle = 0;
+	DIRENT2 dentry;
 
 	printf("\n==========================================\n");
-
-	initialize_file_system();
 
 	// print_fat();
 	// print_file_system();
 
-	printf("\n%d\n", chdir2("/dir1/file1.txt"));
+	handle = opendir2("dir1");
+	printf("Handle: %d\n", handle);
+
+	while(1)
+		if(readdir2(handle, &dentry) < 0)
+			break;
+		else
+			print_dentry(dentry);
+
+	printf("Fechando handle %d: %d\n", handle, closedir2(handle));
+	printf("Fechando handle %d: %d", handle, closedir2(handle));
+
 
 	printf("\n==========================================\n");
 	return 0;
