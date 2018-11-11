@@ -678,7 +678,7 @@ int descriptor_from_path(Descriptor *descriptor, char *filename) {
     char path_copy[strlen(filename)];
 
     // Return if the given path isn't valid
-    // if(!path_is_valid(filename)) return -1;
+    if(!path_is_valid(filename)) return -1;
 
     strcpy(path_copy, filename);
 
