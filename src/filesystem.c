@@ -560,7 +560,7 @@ void save_fat() {
 
     for(i = fat_start; i < fat_end; i++) {
         start_index = (i - fat_start) * SECTOR_SIZE / 4;
-        write_sector(i, &fat[start_index]);
+        write_sector(i, (unsigned char*) &fat[start_index]);
     }
 }
 
