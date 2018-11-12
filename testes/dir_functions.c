@@ -5,6 +5,22 @@
 #include "../include/apidisk.h"
 #include "../include/filesystem.h"
 
+DIR2 test_open(char *pathname) {
+  DIR2 dir;
+  dir = opendir2(pathname);
+  if(dir < 0) {
+    printf("ERRO NA ABERTURA DO DIRETORIO COM PATH %s\n", pathname);
+  }
+  return dir;
+}
+
+void test_read(DIR2 dir, DIRENT2 *entry) {
+  if(readdir2(dir, entry) != 0) {
+    printf("ERRO NA LEITURA DO DIRETORIO DE TESTE.\n");
+    exit(1);
+  }
+}
+
 int main() {
   DIR2 dir, other_dir;
   DIRENT2 entrada;
@@ -27,18 +43,11 @@ int main() {
     exit(1);
   }
   // Open new dir
-  dir = opendir2("./directory");
-  if(dir < 0) {
-    printf("ERRO NA ABERTURA DO DIRETORIO DE TESTE.\n");
-    exit(1);
-  }
+  dir = test_open("./directory");
 
   // For each element inside new dir, compare name
   for(i = 0; i <= 3; i++) {
-    if(readdir2(dir, &entrada) != 0) {
-      printf("ERRO NA LEITURA DO DIRETORIO DE TESTE.\n");
-      exit(1);
-    }
+    test_read(dir, &entrada);
     if(strcmp(entrada.name, names[i]) == 0) {
       printf("Leitura correta da entrada %s.\n", entrada.name);
     } else {
@@ -52,15 +61,10 @@ int main() {
 
   // Test other ways to open dir
   // 1. Absolute
-  other_dir = opendir2("/directory");
-  if(other_dir != dir) {
-    printf("ERRO NA ABERTURA DE DIRETORIO COM CAMINHO ABSOLUTO.\n");
-  }
+  other_dir = test_open("/directory");
+  closedir2(other_dir);
   // 2. Without ./
   other_dir = opendir2("directory");
-  if(other_dir != dir) {
-    printf("ERRO NA ABERTURA DE DIRETORIO COM CAMINHO RELATIVO SEM ./\n");
-  }
   closedir2(other_dir);
   return 0;
 }
