@@ -761,7 +761,9 @@ int path_is_valid(char path[]) {
     if(strlen(path) == 0) return 0;
     if(strcmp(path, "/") == 0) return 1;
     if(strcmp(path, ".") == 0) return 1;
+    if(strcmp(path, "./") == 0) return 1;
     if(strcmp(path, "..") == 0) return 1;
+    if(strcmp(path, "../") == 0) return 1;
     if(has_two_separators_in_a_row(path)) return 0;
     if(ends_with_separator(path)) return 0;
     if(character_is_valid(path[0])) {
