@@ -15,13 +15,13 @@ int main() {
 	int handle = 0;
 	DIRENT2 dentry;
 
-	printf("\n==========================================\n");
-
-	// print_fat();
-	// print_file_system();
-
-	handle = opendir2("dir1");
-	printf("Handle: %d\n", handle);
+	handle = opendir2(".");
+	if(handle <= 0) {
+		printf("Erro, handle = %d\n", handle);
+		exit(1);
+	} else {
+		printf("Handle: %d\n", handle);
+	}
 
 	while(1)
 		if(readdir2(handle, &dentry) < 0)
@@ -30,9 +30,5 @@ int main() {
 			print_dentry(dentry);
 
 	printf("Fechando handle %d: %d\n", handle, closedir2(handle));
-	printf("Fechando handle %d: %d", handle, closedir2(handle));
-
-
-	printf("\n==========================================\n");
 	return 0;
 }

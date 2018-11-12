@@ -21,7 +21,7 @@ int main() {
     printf("ERRO NA LEITURA DO DIRETORIO DE TESTE.\n");
     exit(1);
   }
-  if(strcmp(entrada.name, "testDir") == 0) {
+  if(strcmp(entrada.name, ".") == 0) {
     printf("Leitura correta do diretorio.\n");
   } else {
     printf("ERRO NA LEITURA DO DIRETORIO.\n");
