@@ -37,8 +37,5 @@ int main() {
     exit(1);
   }
   printf("O conteudo do link eh: %s| %d bytes\n", resultado, strlen(resultado));
-
-  print_fat();
-  print_file_system();
   return 0;
 }

@@ -51,6 +51,7 @@ void initialize_file_system() {
     read_root_dir();
     clear_descriptors();
     current_path = (char*) malloc(2 * sizeof(char));
+    strcpy(current_path, "/");
 
     initialized = 1;
     records_per_cluster = RECORDS_PER_SECTOR * super.SectorsPerCluster;
@@ -290,7 +291,7 @@ int truncate_file (FILE2 handle) {
 int seek_file(FILE2 handle, DWORD offset) {
     Descriptor desc = descriptors[handle - 1];
 
-    if(offset == -1) {
+    if(offset == -1 || offset >= desc.file.bytesFileSize) {
         desc.curr_pointer = desc.file.bytesFileSize;
     } else {
         desc.curr_pointer = offset;
@@ -357,7 +358,11 @@ int change_dir(char *pathname) {
     // Return if the given path isn't a directory
     if(desc.file.TypeVal != TYPEVAL_DIRETORIO) return -1;
 
-    strcpy(curr_dir.name, desc.file.name); 
+    if(strcmp(desc.file.name, ".") == 0)
+        strcpy(curr_dir.name, "/");
+    else
+        strcpy(curr_dir.name, desc.file.name); 
+
     curr_dir.firstCluster = desc.file.firstCluster;
     current_path = update_path(current_path, pathname);
     return 0;
@@ -675,18 +680,20 @@ int create_global_descriptor(Descriptor desc) {
 int descriptor_from_path(Descriptor *descriptor, char *filename) {
     char s[2] = "/";
     char *token, last_token[51];
-    char path_copy[strlen(filename)];
+    char *current_dir_path = (char*) malloc(strlen(current_path) * sizeof(char));
+    strcpy(current_dir_path, current_path);
 
     // Return if the given path isn't valid
     if(!path_is_valid(filename)) return -1;
 
+    filename = update_path(current_dir_path, filename);
+    char path_copy[strlen(filename)];
+
     strcpy(path_copy, filename);
 
-    // Starts from root or current_dir
-    if(path_copy[0] == '/')
-        memcpy(&descriptor->file, &root_dir, sizeof(Record));
-    else
-        memcpy(&descriptor->file, &curr_dir, sizeof(Record));
+    // Starts from root
+    memcpy(&descriptor->file, &root_dir, sizeof(Record));
+    memcpy(&descriptor->parent, &root_dir, sizeof(Record));
 
     token = strtok(path_copy, s);
 
@@ -752,6 +759,11 @@ int is_number(char character) {
 }
 int path_is_valid(char path[]) {
     if(strlen(path) == 0) return 0;
+    if(strcmp(path, "/") == 0) return 1;
+    if(strcmp(path, ".") == 0) return 1;
+    if(strcmp(path, "./") == 0) return 1;
+    if(strcmp(path, "..") == 0) return 1;
+    if(strcmp(path, "../") == 0) return 1;
     if(has_two_separators_in_a_row(path)) return 0;
     if(ends_with_separator(path)) return 0;
     if(character_is_valid(path[0])) {

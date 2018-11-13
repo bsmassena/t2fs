@@ -2,7 +2,7 @@ CC=gcc
 LIB_DIR=../lib
 FLAGS=-L$(LIB_DIR) -lt2fs -lm -Wall
 
-all: teste name_validator getcwd link read_write
+all: teste name_validator getcwd link read_write dir_functions seek_truncate
 
 teste: teste.o $(LIB_DIR)/libt2fs.a
 	$(CC) -o teste teste.o $(FLAGS)
@@ -27,10 +27,23 @@ link: link.o $(LIB_DIR)/libt2fs.a
 link.o: link.c
 	$(CC) -c link.c -Wall
 
+
 read_write: read_write.o $(LIB_DIR)/libt2fs.a
 	$(CC) -o read_write read_write.o $(FLAGS)
 read_write.o: read_write.c
 	$(CC) -c read_write.c -Wall
 
+
+dir_functions: dir_functions.o $(LIB_DIR)/libt2fs.a
+	$(CC) -o dir_functions dir_functions.o $(FLAGS)
+dir_functions.o: dir_functions.c
+	$(CC) -c dir_functions.c -Wall
+
+
+seek_truncate: seek_truncate.o $(LIB_DIR)/libt2fs.a
+	$(CC) -o seek_truncate seek_truncate.o $(FLAGS)
+seek_truncate.o: seek_truncate.c
+	$(CC) -c seek_truncate.c -Wall
+
 clean:
-	rm *.o teste name_validator getcwd link
+	rm *.o teste name_validator getcwd link dir_functions read_write seek_truncate

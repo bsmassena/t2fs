@@ -11,7 +11,7 @@ int main() {
 
 	printf("\n==========================================\n");
 
-	handle = create2("teste.txt");
+	handle = create2("testetxt");
 	if(handle < 0) {
 		printf("Erro ao criar\n");
 		exit(1);
