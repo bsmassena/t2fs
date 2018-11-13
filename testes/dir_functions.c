@@ -42,8 +42,10 @@ int main() {
     printf("ERRO NA CRIACAO DO ARQUIVO DE TESTE.\n");
     exit(1);
   }
+
+  chdir2("./directory/testDir");
   // Open new dir
-  dir = test_open("./directory");
+  dir = test_open("..");
 
   // For each element inside new dir, compare name
   for(i = 0; i <= 3; i++) {
@@ -58,13 +60,16 @@ int main() {
   if(closedir2(dir) < 0) {
     printf("ERRO AO FECHAR O DIRETORIO.\n");
   }
-
+  if(chdir2("../..") < 0) {
+    printf("ERRO AO IR PARA O DIRETORIO RAIZ.\n");
+  }
+  
   // Test other ways to open dir
   // 1. Absolute
   other_dir = test_open("/directory");
   closedir2(other_dir);
   // 2. Without ./
-  other_dir = opendir2("directory");
+  other_dir = test_open("directory");
   closedir2(other_dir);
   return 0;
 }
